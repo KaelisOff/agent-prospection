@@ -70,8 +70,8 @@ func newBox(t *testing.T) *agenttest.Box {
 		return []agent.WebResult{{URL: "https://www.pagesjaunes.fr/autre"}}
 	}
 	box.Pages = map[string]agent.Page{
-		"https://www.plomberie-dubert.fr/": {Text: "Plombier à Paris 11e. Contact : contact@plomberie-dubert.fr"},
-		"https://chauffage-roquette.fr/": {Text: "Chauffagiste", Links: []agent.Link{{Text: "Nous écrire", URL: "https://chauffage-roquette.fr/contact"}}},
+		"https://www.plomberie-dubert.fr/":      {Text: "Plombier à Paris 11e. Contact : contact@plomberie-dubert.fr"},
+		"https://chauffage-roquette.fr/":        {Text: "Chauffagiste", Links: []agent.Link{{Text: "Nous écrire", URL: "https://chauffage-roquette.fr/contact"}}},
 		"https://chauffage-roquette.fr/contact": {Links: []agent.Link{{URL: "mailto:accueil@chauffage-roquette.fr"}, {URL: "mailto:paul.roquette@gmail.com"}}},
 	}
 	return box
