@@ -4,8 +4,9 @@ Un agent pour la box Kaelis qui **trouve des clients par email**, seul, chaque j
 s'améliore avec le temps. Il est écrit pour un cabinet, un indépendant ou une petite entreprise qui n'a
 pas le temps de prospecter.
 
-> **État : en conception.** Le code arrivera avec la capacité email de la box, qui porte les
-> garde-fous. Ce dépôt décrit ce que fera l'agent : les remarques sont bienvenues dans les *issues*.
+> **État : en conception.** La capacité email de la box, qui porte les garde-fous, existe depuis le
+> kit [v0.2.0](https://github.com/KaelisOff/agent-sdk-go) ; le code de l'agent arrive ensuite. Ce dépôt
+> décrit ce que fera l'agent : les remarques sont bienvenues dans les *issues*.
 
 ## Ce qu'il fait
 
@@ -49,8 +50,8 @@ Les contacts et les réponses restent dans la box.
 | horaires | un passage le matin et quelques passages d'envoi en journée, en semaine |
 | notifications | le point du matin, les alertes |
 | demandes d'accord | dépasser une limite, changer de cible |
-| envoi d'emails *(à venir)* | envoyer, dans les limites de la box |
-| lecture des réponses *(à venir)* | seulement les réponses à ses propres emails |
+| envoi d'emails (`mail_send`) | envoyer, dans les limites de la box |
+| lecture des réponses (`mail_read`) | seulement les réponses à ses propres emails |
 
 La conception détaillée (stratégie, tests A/B, chiffres, questions ouvertes) est dans
 [docs/conception.md](docs/conception.md).

@@ -77,19 +77,22 @@ Valeurs proposées, réglables par le propriétaire vers le bas, jamais au-delà
 
 | Garde-fou | Proposition |
 |---|---|
-| Plafond quotidien | 20 emails/jour au départ, montée progressive jusqu'au plafond fixé |
+| Plafond quotidien | 20 emails/jour la première semaine, puis le double chaque semaine, jusqu'au plafond fixé par le propriétaire (200 max) |
 | Fenêtre d'envoi | du lundi au samedi, 8 h – 19 h |
-| Frein « erreurs » | plus de 5 % d'adresses en erreur sur les 100 derniers envois → pause |
-| Frein « désinscriptions » | plus de 2 % sur les 100 derniers envois → pause |
+| Frein « erreurs » | plus de 5 % d'adresses en erreur sur les 100 derniers envois (dès 50 envois) → pause |
+| Frein « désinscriptions » | plus de 2 % sur les 100 derniers envois (dès 50 envois) → pause |
 | Contact | un seul email de prospection par adresse, pour toujours |
+
+Ces garde-fous sont en place dans la box (service mail) ; ils s'appliquent à tout agent qui envoie des
+emails, pas seulement à celui-ci.
 
 ## Questions ouvertes
 
 - **D'où viennent les contacts ?** Pour commencer : une liste importée par le propriétaire (CSV).
   Ensuite : annuaires publics d'entreprises (base SIRENE) pour choisir les cibles, et adresses de
   contact publiées par les entreprises elles-mêmes.
-- **Quelle boîte d'envoi ?** La messagerie du propriétaire (SMTP/IMAP) ou un service d'envoi dédié,
-  meilleur pour la délivrabilité. À trancher avec la capacité email.
+- **Quelle boîte d'envoi ?** Pour commencer, la messagerie du propriétaire (SMTP/IMAP), de préférence
+  une adresse dédiée ; un service d'envoi dédié, meilleur pour la délivrabilité, pourra s'y ajouter.
 - **Répondre depuis l'email** : valider une demande d'accord en répondant au point du jour demande
   d'authentifier la réponse (pas seulement l'adresse d'expéditeur). À concevoir ; en attendant, la
   validation passe par l'application.
