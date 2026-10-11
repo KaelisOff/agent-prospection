@@ -4,11 +4,14 @@ Un agent pour la box Kaelis qui **trouve des clients par email**, seul, chaque j
 s'améliore avec le temps. Il est écrit pour un cabinet, un indépendant ou une petite entreprise qui n'a
 pas le temps de prospecter.
 
-> **État : en conception.** La capacité email de la box, qui porte les garde-fous, existe depuis le
-> kit [v0.2.0](https://github.com/KaelisOff/agent-sdk-go) ; le code de l'agent arrive ensuite. Ce dépôt
-> décrit ce que fera l'agent : les remarques sont bienvenues dans les *issues*.
+> **État : première version (0.1.0), en essai.** Les remarques sont bienvenues dans les *issues*.
 
 ## Ce qu'il fait
+
+- **Il trouve les entreprises** de vos cibles (métiers et lieux, dans ses réglages) dans l'**annuaire
+  officiel** (SIRENE), puis leur **propre site** par une recherche web, et y relève une **adresse
+  générique** (contact@, accueil@, devis@…). Jamais l'adresse d'une personne, jamais une adresse
+  trouvée sur un annuaire ou un réseau social.
 
 - **Chaque matin de semaine**, un point en notification (et par email) : emails envoyés, réponses,
   désinscriptions, erreurs, test en cours, ce qu'il prévoit ensuite.
@@ -18,8 +21,8 @@ pas le temps de prospecter.
   jusqu'à avoir des chiffres fiables.
 - **Il apprend** : au plus une fois par semaine, il fait évoluer sa stratégie, chiffres à l'appui, et
   explique pourquoi.
-- **Il demande votre accord** dès qu'il voudrait dépasser une limite (plus d'envois, plus de budget,
-  une nouvelle cible) : une réponse en un clic depuis l'application.
+- **Deux modes, un bouton** (dans ses réglages) : chaque nouveau message attend votre accord, ou
+  l'agent écrit et teste seul et vous montre ses messages.
 
 ## Ce qu'il ne peut pas faire
 
@@ -41,13 +44,24 @@ email. Même un agent modifié ou trompé par un email piégé ne peut pas les f
 Et comme tout agent Kaelis : pas de réseau, pas d'accès aux fichiers ni aux conversations de la box.
 Les contacts et les réponses restent dans la box.
 
-## Permissions prévues
+## Installer et régler
+
+1. Téléchargez le paquet `.kagent` de la dernière [version](https://github.com/KaelisOff/agent-prospection/releases).
+2. Dans le Centre d'agents de votre box : *Installer un agent*, lisez et acceptez les permissions.
+3. *Configurer* : votre offre, les métiers visés (codes NAF comme `43.22A`, ou mots du nom), les lieux
+   (codes postaux ou départements), le mode, le nombre d'emails par jour.
+4. Configurez la messagerie de la box (*Réglages → Messagerie*), de préférence une adresse dédiée.
+5. Activez l'agent. Le lendemain matin, il vous propose ses premiers messages.
+
+## Permissions
 
 | Capacité | Pour quoi |
 |---|---|
-| modèle | écrire les messages, lire les réponses (intéressé, pas intéressé, absent…), préparer les points |
-| mémoire | contacts déjà traités, résultats des tests, stratégie en cours |
-| horaires | un passage le matin et quelques passages d'envoi en journée, en semaine |
+| modèle | écrire les messages, classer les réponses (intéressé, question, pas intéressé) |
+| mémoire | entreprises déjà vues, file d'envoi, résultats des tests (4 Mo) |
+| horaires | 8 h 30, 10 h, 14 h et 16 h 30, en semaine |
+| annuaire des entreprises | trouver les entreprises de vos cibles |
+| web (100 recherches par jour) | trouver le site de chaque entreprise et y lire sa page contact |
 | notifications | le point du matin, les alertes |
 | demandes d'accord | dépasser une limite, changer de cible |
 | envoi d'emails (`mail_send`) | envoyer, dans les limites de la box |
@@ -55,6 +69,14 @@ Les contacts et les réponses restent dans la box.
 
 La conception détaillée (stratégie, tests A/B, chiffres, questions ouvertes) est dans
 [docs/conception.md](docs/conception.md).
+
+## Développer
+
+```sh
+make test      # tests, avec une box simulée (annuaire, web, modèle, emails)
+make package   # dist/io.github.kaelisoff.prospection-<version>.kagent
+make verify    # paquet reproductible
+```
 
 ## Licence
 

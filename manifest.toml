@@ -1,0 +1,77 @@
+# Le manifeste de l'agent : https://github.com/KaelisOff/agent-sdk-go/blob/main/docs/manifeste.md
+id = "io.github.kaelisoff.prospection"
+name = "Prospection"
+version = "0.1.0"
+description = "Trouve des entreprises de vos cibles dans l'annuaire officiel, leur adresse de contact générique sur leur propre site, et leur écrit un email court, amélioré par des tests A/B. Un point chaque matin, les réponses intéressées tout de suite, vos accords quand il faut."
+author = "Kaelis"
+license = "Apache-2.0"
+source = "https://github.com/KaelisOff/agent-prospection"
+
+[run]
+memory_mb = 128
+timeout_min = 20
+
+[permissions]
+model = true
+notify = true
+approval = true
+storage_kb = 4096
+schedule = ["30 8 * * 1-5", "0 10 * * 1-5", "0 14 * * 1-5", "30 16 * * 1-5"]
+mail_send = 200
+mail_read = true
+web_search = 100
+companies = true
+
+[[settings]]
+key = "offer"
+label = "Votre offre, en deux ou trois phrases"
+type = "textarea"
+required = true
+max_length = 1000
+help = "Ce que vous proposez et à qui. Les messages sont écrits à partir de ce texte : n'y mettez que ce qui est vrai."
+
+[[settings]]
+key = "activities"
+label = "Métiers visés"
+type = "list"
+required = true
+max_length = 60
+help = "Codes NAF (43.22A pour la plomberie, 43.21A pour l'électricité…) ou mots du nom des entreprises."
+
+[[settings]]
+key = "places"
+label = "Lieux visés"
+type = "list"
+required = true
+max_length = 5
+help = "Codes postaux (75011) ou départements (69, 2A)."
+
+[[settings]]
+key = "review"
+label = "Valider chaque nouveau message avant envoi"
+type = "toggle"
+default = true
+help = "Désactivé : l'agent écrit et teste ses messages seul ; vous les voyez dans les notifications."
+
+[[settings]]
+key = "daily"
+label = "Emails par jour au maximum"
+type = "number"
+default = 20
+min = 1
+max = 200
+help = "La boîte applique aussi sa propre limite (20 par jour au début, puis elle augmente chaque semaine)."
+
+[[settings]]
+key = "tone"
+label = "Vouvoyer ou tutoyer"
+type = "choice"
+choices = ["vous", "tu"]
+default = "vous"
+
+[[settings]]
+key = "sole_traders"
+label = "Écrire aussi aux entrepreneurs individuels"
+type = "toggle"
+default = false
+help = "Leur nom est celui d'une personne : seules les adresses génériques (contact@…) sont utilisées."

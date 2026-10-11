@@ -88,9 +88,10 @@ emails, pas seulement à celui-ci.
 
 ## Questions ouvertes
 
-- **D'où viennent les contacts ?** Pour commencer : une liste importée par le propriétaire (CSV).
-  Ensuite : annuaires publics d'entreprises (base SIRENE) pour choisir les cibles, et adresses de
-  contact publiées par les entreprises elles-mêmes.
+- **D'où viennent les contacts ?** De l'annuaire officiel (SIRENE, outil `companies` de la box) pour
+  les entreprises, puis de leur propre site (outil `web`) pour l'adresse : uniquement une adresse
+  générique publiée par l'entreprise elle-même. Les entreprises non diffusibles sont écartées par la
+  box, les entrepreneurs individuels par défaut.
 - **Quelle boîte d'envoi ?** Pour commencer, la messagerie du propriétaire (SMTP/IMAP), de préférence
   une adresse dédiée ; un service d'envoi dédié, meilleur pour la délivrabilité, pourra s'y ajouter.
 - **Répondre depuis l'email** : valider une demande d'accord en répondant au point du jour demande
