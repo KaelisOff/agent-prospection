@@ -43,6 +43,10 @@ func sendShare(box *agent.Box, cfg Config, st *State, queue []Prospect, seen map
 	if st.Test == nil || len(queue) == 0 {
 		return queue
 	}
+	if p := senderProblem(cfg.Sender); p != "" {
+		box.Logf("sending stops: %s", p)
+		return queue
+	}
 	left := cfg.Daily - st.SentToday
 	if left <= 0 {
 		return queue
@@ -60,7 +64,7 @@ func sendShare(box *agent.Box, cfg Config, st *State, queue []Prospect, seen map
 			tpl = st.Test.B
 		}
 		subject, body := render(tpl, p)
-		_, err := box.SendMail(agent.Mail{To: p.Email, Subject: subject, Body: body, Campaign: p.Target, Variant: st.Test.ID + v})
+		_, err := box.SendMail(agent.Mail{To: p.Email, Subject: subject, Body: body, Sender: cfg.Sender, Campaign: p.Target, Variant: st.Test.ID + v})
 		switch {
 		case err == nil:
 			sent++
@@ -86,7 +90,7 @@ func sendShare(box *agent.Box, cfg Config, st *State, queue []Prospect, seen map
 			}
 		default:
 			// Outside the hours, limit reached, paused, not configured,
-			// server down: try again at the next run.
+			// Messagerie turned off, server down: try again at the next run.
 			box.Logf("sending stops: %v", err)
 			return queue
 		}

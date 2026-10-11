@@ -69,7 +69,7 @@ func report(box *agent.Box, cfg Config, st *State, queueLen int, mail agent.Mail
 	for _, p := range cfg.Problems {
 		b.WriteString("Réglage à corriger : " + p + ".\n")
 	}
-	if err := box.Notify("Point du jour", strings.TrimSpace(b.String())); err != nil {
+	if err := notify(box, cfg, "Point du jour", strings.TrimSpace(b.String())); err != nil {
 		box.Logf("report: %v", err)
 	}
 	st.Since = Tally{}
@@ -121,7 +121,7 @@ func review(box *agent.Box, cfg Config, st *State, now time.Time, bud *budget) {
 	if b.Len() == 0 {
 		b.WriteString("Pas encore assez d'envois pour un bilan.")
 	}
-	if err := box.Notify("Bilan de la semaine", strings.TrimSpace(b.String())); err != nil {
+	if err := notify(box, cfg, "Bilan de la semaine", strings.TrimSpace(b.String())); err != nil {
 		box.Logf("review: %v", err)
 	}
 	st.LastReview = now
@@ -189,4 +189,14 @@ func onApproval(box *agent.Box, st *State, a *agent.Approval, now time.Time) str
 		return "pas de réponse : de nouveaux messages seront proposés"
 	}
 	return "messages refusés : de nouveaux seront proposés"
+}
+
+// notify sends a notification, also by email if the owner asked so (and
+// the box has a mailbox).
+func notify(box *agent.Box, cfg Config, title, body string) error {
+	if !cfg.ByEmail {
+		return box.Notify(title, body)
+	}
+	_, err := box.NotifyByEmail(title, body)
+	return err
 }

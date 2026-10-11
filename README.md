@@ -13,8 +13,9 @@ pas le temps de prospecter.
   générique** (contact@, accueil@, devis@…). Jamais l'adresse d'une personne, jamais une adresse
   trouvée sur un annuaire ou un réseau social.
 
-- **Chaque matin de semaine**, un point en notification (et par email) : emails envoyés, réponses,
-  désinscriptions, erreurs, test en cours, ce qu'il prévoit ensuite.
+- **Chaque matin de semaine**, un point en notification (et par email si vous le voulez) : emails
+  envoyés, réponses, désinscriptions, erreurs, test en cours, ce qu'il prévoit ensuite. Une réponse
+  intéressée vous est signalée tout de suite.
 - **Il choisit sa stratégie** : quels métiers et quelles villes viser, quels messages envoyer, à quelle
   heure.
 - **Il écrit et améliore ses messages** avec le modèle de la box, et les teste deux par deux (test A/B)
@@ -47,10 +48,14 @@ Les contacts et les réponses restent dans la box.
 ## Installer et régler
 
 1. Téléchargez le paquet `.kagent` de la dernière [version](https://github.com/KaelisOff/agent-prospection/releases).
-2. Dans le Centre d'agents de votre box : *Installer un agent*, lisez et acceptez les permissions.
-3. *Configurer* : votre offre, les métiers visés (codes NAF comme `43.22A`, ou mots du nom), les lieux
-   (codes postaux ou départements), le mode, le nombre d'emails par jour.
-4. Configurez la messagerie de la box (*Réglages → Messagerie*), de préférence une adresse dédiée.
+2. Dans le Centre d'applications de votre box, onglet *Agents* : *Installer un agent*, lisez et
+   acceptez les permissions.
+3. *Configurer* : votre offre ; votre nom, votre société et son adresse postale (la box les écrit en
+   bas de chaque email, c'est obligatoire en prospection) ; les métiers visés (codes NAF comme
+   `43.22A`, ou mots du nom), les lieux (codes postaux ou départements), le mode, le nombre d'emails
+   par jour, et si vous voulez recevoir le point du jour par email.
+4. Connectez la messagerie de la box (*Centre d'applications → Plugins → Messagerie*) : votre adresse
+   et un mot de passe d'application, de préférence une adresse dédiée.
 5. Activez l'agent. Le lendemain matin, il vous propose ses premiers messages.
 
 ## Permissions

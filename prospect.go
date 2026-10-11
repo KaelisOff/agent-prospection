@@ -50,6 +50,9 @@ func fill(box *agent.Box, cfg Config, st *State, queue []Prospect, seen map[stri
 		if !bud.spend(1) {
 			return queue
 		}
+		// If this page cannot be finished, it is read again later (the
+		// companies already dealt with are in seen).
+		before := *pr
 		page, err := box.SearchCompanies(t.query(pr.Page + 1))
 		if err != nil {
 			box.Logf("directory: %v", err)
@@ -75,8 +78,10 @@ func fill(box *agent.Box, cfg Config, st *State, queue []Prospect, seen map[stri
 			switch stop {
 			case stopQuota:
 				st.SearchDone = today // the web quota is used up for today
+				*pr = before
 				return queue
-			case stopBudget:
+			case stopBudget, stopUnavailable:
+				*pr = before
 				return queue
 			}
 			if p == nil {
@@ -87,6 +92,8 @@ func fill(box *agent.Box, cfg Config, st *State, queue []Prospect, seen map[stri
 			queue = append(queue, *p)
 			found++
 			if len(queue) >= want {
+				// The rest of the page waits for the next search.
+				*pr = before
 				break
 			}
 		}
@@ -102,6 +109,9 @@ func fill(box *agent.Box, cfg Config, st *State, queue []Prospect, seen map[stri
 const (
 	stopQuota  = "quota"  // the day's web quota is used up
 	stopBudget = "budget" // this run's calls or time are
+	// stopUnavailable: the web is not there (plugin turned off, service
+	// down); the company is tried again later.
+	stopUnavailable = "unavailable"
 )
 
 // contactOf looks for a company's generic address.
@@ -122,6 +132,10 @@ func contactOf(box *agent.Box, c agent.Company, campaign string, bud *budget) (p
 		if agent.IsCode(err, agent.CodeQuota) {
 			return nil, stopQuota
 		}
+		if agent.IsCode(err, agent.CodePluginDisabled) || agent.IsCode(err, agent.CodeFailed) {
+			box.Logf("web unavailable: %v", err)
+			return nil, stopUnavailable
+		}
 		box.Logf("search %q: %v", query, err)
 		return nil, ""
 	}
@@ -134,6 +148,9 @@ func contactOf(box *agent.Box, c agent.Company, campaign string, bud *budget) (p
 	if err != nil {
 		if agent.IsCode(err, agent.CodeQuota) {
 			return nil, stopQuota
+		}
+		if agent.IsCode(err, agent.CodePluginDisabled) {
+			return nil, stopUnavailable
 		}
 		return nil, ""
 	}

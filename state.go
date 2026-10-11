@@ -5,15 +5,19 @@ import (
 	"regexp"
 	"strings"
 	"time"
+	"unicode/utf8"
 
 	"github.com/KaelisOff/agent-sdk-go/agent"
 )
 
 // --- settings ------------------------------------------------------------------------
 
-// Config is what the owner set in the Agent Center.
+// Config is what the owner set in the Application Center.
 type Config struct {
-	Offer       string
+	Offer string
+	// Sender signs the emails (the box writes it in the footer).
+	Sender      agent.Sender
+	ByEmail     bool // the report and interested replies also by email
 	Targets     []Target
 	Review      bool // each new message waits for the owner's approval
 	Daily       int
@@ -33,7 +37,15 @@ var (
 func loadConfig(s agent.Settings) Config {
 	c := Config{
 		Offer: strings.TrimSpace(s.String("offer")), Review: s.Bool("review"), Daily: int(s.Number("daily")),
-		Tone: s.String("tone"), SoleTraders: s.Bool("sole_traders"),
+		Tone: s.String("tone"), SoleTraders: s.Bool("sole_traders"), ByEmail: s.Bool("report_by_email"),
+		Sender: agent.Sender{
+			Name:          strings.TrimSpace(s.String("sender_name")),
+			Company:       strings.TrimSpace(s.String("company")),
+			PostalAddress: strings.TrimSpace(s.String("postal_address")),
+		},
+	}
+	if p := senderProblem(c.Sender); p != "" {
+		c.Problems = append(c.Problems, p)
 	}
 	if c.Daily <= 0 {
 		c.Daily = 20
@@ -63,6 +75,22 @@ func loadConfig(s agent.Settings) Config {
 		}
 	}
 	return c
+}
+
+// senderProblem checks the sender's identity like the box does: without
+// a valid one, nothing is sent.
+func senderProblem(s agent.Sender) string {
+	for _, f := range []struct {
+		label, value string
+		min, max     int
+	}{
+		{"votre nom", s.Name, 1, 80}, {"votre société", s.Company, 1, 120}, {"l'adresse postale", s.PostalAddress, 5, 200},
+	} {
+		if n := utf8.RuneCountInString(f.value); n < f.min || n > f.max || strings.ContainsAny(f.value, "\r\n\t") {
+			return fmt.Sprintf("%s : de %d à %d caractères, sur une ligne (aucun email ne part sans)", f.label, f.min, f.max)
+		}
+	}
+	return ""
 }
 
 // Target is an activity in a place: what the directory is searched for.

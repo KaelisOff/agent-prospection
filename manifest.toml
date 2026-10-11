@@ -1,7 +1,7 @@
 # Le manifeste de l'agent : https://github.com/KaelisOff/agent-sdk-go/blob/main/docs/manifeste.md
 id = "io.github.kaelisoff.prospection"
 name = "Prospection"
-version = "0.1.1"
+version = "0.2.0"
 description = "Trouve des entreprises de vos cibles dans l'annuaire officiel, leur adresse de contact générique sur leur propre site, et leur écrit un email court, amélioré par des tests A/B. Un point chaque matin, les réponses intéressées tout de suite, vos accords quand il faut."
 author = "Kaelis"
 license = "Apache-2.0"
@@ -29,6 +29,29 @@ type = "textarea"
 required = true
 max_length = 1000
 help = "Ce que vous proposez et à qui. Les messages sont écrits à partir de ce texte : n'y mettez que ce qui est vrai."
+
+[[settings]]
+key = "sender_name"
+label = "Votre nom"
+type = "text"
+required = true
+max_length = 80
+help = "Il signe les emails. La boîte l'écrit en bas de chaque email, avec la société, l'adresse et la mention « répondez STOP » : c'est obligatoire en prospection."
+
+[[settings]]
+key = "company"
+label = "Votre société"
+type = "text"
+required = true
+max_length = 120
+
+[[settings]]
+key = "postal_address"
+label = "Adresse postale de la société"
+type = "text"
+required = true
+max_length = 200
+help = "Sur une ligne, par exemple : 12 rue de la Paix, 75002 Paris."
 
 [[settings]]
 key = "activities"
@@ -75,3 +98,10 @@ label = "Écrire aussi aux entrepreneurs individuels"
 type = "toggle"
 default = false
 help = "Leur nom est celui d'une personne : seules les adresses génériques (contact@…) sont utilisées."
+
+[[settings]]
+key = "report_by_email"
+label = "Recevoir aussi le point du jour et les réponses intéressées par email"
+type = "toggle"
+default = false
+help = "Envoyés à la boîte mail que vous avez connectée dans la Messagerie. Attention : ils quittent alors la boîte Kaelis."

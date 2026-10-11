@@ -45,9 +45,12 @@ func newBox(t *testing.T) *agenttest.Box {
 	box.Location = paris
 	box.Model = fakeModel
 	box.Settings = map[string]any{
-		"offer":      "Tenue de comptabilité mensuelle pour les artisans du bâtiment.",
-		"activities": []any{"43.22A"},
-		"places":     []any{"75011", "Paris"},
+		"offer":          "Tenue de comptabilité mensuelle pour les artisans du bâtiment.",
+		"sender_name":    "Claire Martin",
+		"company":        "Cabinet Martin",
+		"postal_address": "12 rue de la Paix, 75002 Paris",
+		"activities":     []any{"43.22A"},
+		"places":         []any{"75011", "Paris"},
 	}
 	box.Directory = func(q agent.CompanyQuery) []agent.Company {
 		if q.PostalCode != "75011" || q.Activities[0] != "43.22A" {
@@ -133,6 +136,9 @@ func TestProspection(t *testing.T) {
 	if !strings.Contains(sent[0].Subject, "Plomberie Dubert") {
 		t.Errorf("subject = %q", sent[0].Subject)
 	}
+	if sent[0].Sender != (agent.Sender{Name: "Claire Martin", Company: "Cabinet Martin", PostalAddress: "12 rue de la Paix, 75002 Paris"}) {
+		t.Errorf("sender = %+v", sent[0].Sender)
+	}
 
 	// Replies: the interested one is notified at once.
 	box.Reply("contact@plomberie-dubert.fr", "Oui, rappelez-moi jeudi.")
@@ -191,6 +197,62 @@ func TestRefusedMessages(t *testing.T) {
 	mustRun(t, box, agenttest.Scheduled(morning))
 	if len(box.Approvals) != 2 {
 		t.Errorf("approvals = %d", len(box.Approvals))
+	}
+}
+
+func TestReportsByEmail(t *testing.T) {
+	box := newBox(t)
+	box.Settings["review"] = false
+	at(box, 12, 8, 30)
+	mustRun(t, box, agenttest.Scheduled(morning))
+	if n := box.Notifications[0]; n.Title != "Point du jour" || n.Email {
+		t.Errorf("by default only on the box: %+v", n)
+	}
+	box.Settings["report_by_email"] = true
+	box.Reply("contact@plomberie-dubert.fr", "Oui, rappelez-moi jeudi.")
+	at(box, 12, 14, 0)
+	before := len(box.Notifications)
+	mustRun(t, box, agenttest.Scheduled("0 14 * * 1-5"))
+	if n := box.Notifications[before:]; len(n) != 1 || !n[0].Email || !strings.Contains(n[0].Title, "est intéressé") {
+		t.Errorf("interested reply: %+v", n)
+	}
+	at(box, 13, 8, 30)
+	mustRun(t, box, agenttest.Scheduled(morning))
+	if n := box.Notifications[len(box.Notifications)-1]; n.Title != "Point du jour" || !n.Email {
+		t.Errorf("report: %+v", n)
+	}
+}
+
+func TestNoEmailWithoutSender(t *testing.T) {
+	box := newBox(t)
+	box.Settings["review"] = false
+	box.Settings["postal_address"] = "Lyon"
+	at(box, 12, 8, 30)
+	mustRun(t, box, agenttest.Scheduled(morning))
+	if len(box.SentMail()) != 0 {
+		t.Errorf("sent without a valid sender: %+v", box.SentMail())
+	}
+	if !strings.Contains(box.Notifications[0].Body, "l'adresse postale") {
+		t.Errorf("report = %s", box.Notifications[0].Body)
+	}
+}
+
+func TestPluginsTurnedOff(t *testing.T) {
+	box := newBox(t)
+	box.Settings["review"] = false
+	box.PluginsOff = []string{"web", "mail"}
+	at(box, 12, 8, 30)
+	mustRun(t, box, agenttest.Scheduled(morning))
+	var seen map[string]string
+	if _, err := getJSON(box, "seen", &seen); err != nil || len(seen) != 0 || len(box.SentMail()) != 0 {
+		t.Fatalf("seen = %v, %v, sent %d", seen, err, len(box.SentMail()))
+	}
+	// Back on: the same companies are found and written to.
+	box.PluginsOff = nil
+	at(box, 12, 10, 0)
+	mustRun(t, box, agenttest.Scheduled("0 10 * * 1-5"))
+	if len(box.SentMail()) != 2 {
+		t.Errorf("sent = %d", len(box.SentMail()))
 	}
 }
 

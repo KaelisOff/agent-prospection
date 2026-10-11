@@ -42,7 +42,7 @@ func run(box *agent.Box, r agent.Run) (string, error) {
 		return summary, save(box, st, queue, seen)
 	}
 
-	if err := handleReplies(box, st, bud); err != nil {
+	if err := handleReplies(box, cfg, st, bud); err != nil {
 		box.Logf("replies: %v", err)
 	}
 	today := now.Format("2006-01-02")

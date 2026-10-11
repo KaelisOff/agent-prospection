@@ -47,7 +47,7 @@ func classify(box *agent.Box, text string) string {
 }
 
 // handleReplies reads what came back since the last run.
-func handleReplies(box *agent.Box, st *State, bud *budget) error {
+func handleReplies(box *agent.Box, cfg Config, st *State, bud *budget) error {
 	for bud.spend(1) {
 		replies, next, err := box.Replies(st.RepliesAfter, 50)
 		if err != nil {
@@ -82,7 +82,7 @@ func handleReplies(box *agent.Box, st *State, bud *budget) error {
 						what = "pose une question"
 					}
 					title := fmt.Sprintf("%s %s", r.To, what)
-					_ = box.Notify(title, "Réponse reçue : "+excerpt(r.Text, 600)+
+					_ = notify(box, cfg, title, "Réponse reçue : "+excerpt(r.Text, 600)+
 						"\n\nRépondez-lui vous-même depuis votre messagerie : l'agent ne répond jamais à votre place.")
 				} else {
 					st.Since.Negative++
