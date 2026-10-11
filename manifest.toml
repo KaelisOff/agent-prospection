@@ -1,7 +1,7 @@
 # Le manifeste de l'agent : https://github.com/KaelisOff/agent-sdk-go/blob/main/docs/manifeste.md
 id = "io.github.kaelisoff.prospection"
 name = "Prospection"
-version = "0.1.0"
+version = "0.1.1"
 description = "Trouve des entreprises de vos cibles dans l'annuaire officiel, leur adresse de contact générique sur leur propre site, et leur écrit un email court, amélioré par des tests A/B. Un point chaque matin, les réponses intéressées tout de suite, vos accords quand il faut."
 author = "Kaelis"
 license = "Apache-2.0"

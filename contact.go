@@ -67,6 +67,91 @@ func nameTokens(names ...string) []string {
 	return out
 }
 
+// Words a company's site uses about its trade, by NAF class (the first
+// five characters of the code). A site that mentions none of its trade's
+// words is not the company's. Classes not listed are not checked.
+var tradeVocabulary = map[string][]string{
+	"43.22": {"plomb", "chauff", "sanitaire", "gaz", "climatis", "chaudiere", "thermique", "fuite", "depannage"},
+	"43.21": {"electri", "eclairage", "domotique", "tableau"},
+	"43.32": {"menuis", "fenetre", "porte", "placard", "agencement", "bois"},
+	"43.33": {"carrel", "parquet", "revetement", "sol"},
+	"43.34": {"peint", "revetement", "decoration", "facade"},
+	"43.31": {"platr", "plaquiste", "cloison", "staff"},
+	"43.91": {"couvreur", "couverture", "toiture", "zinguerie", "charpente"},
+	"43.99": {"macon", "gros oeuvre", "beton", "terrassement"},
+	"43.29": {"isolation", "isolant", "ravalement"},
+	"41.20": {"construction", "batiment", "renovation", "maison", "travaux"},
+	"45.20": {"garage", "mecanique", "carrosserie", "vehicule", "entretien auto"},
+	"56.10": {"restaurant", "cuisine", "menu", "brasserie", "reservation"},
+	"56.30": {"bar", "cafe", "cocktail"},
+	"96.02": {"coiff", "beaute", "esthetique", "ongle", "barbier"},
+	"69.20": {"compta", "expert", "fiscal", "gestion", "paie"},
+	"69.10": {"avocat", "juridique", "droit", "notaire", "conseil"},
+	"68.31": {"immobilier", "agence", "location", "vente", "bien"},
+	"47.76": {"fleur", "bouquet", "plante"},
+	"62.01": {"informatique", "logiciel", "developpement", "application", "site"},
+	"62.02": {"informatique", "conseil", "systeme", "reseau"},
+	"71.11": {"architect"},
+	"86.23": {"dentaire", "dentiste"},
+	"10.71": {"boulang", "patiss", "pain", "viennoiserie"},
+}
+
+// aboutTrade checks that a page speaks of the company's trade.
+func aboutTrade(p agent.Page, naf string) bool {
+	if len(naf) < 5 {
+		return true
+	}
+	words, ok := tradeVocabulary[naf[:5]]
+	if !ok {
+		return true
+	}
+	text := fold(p.Title + " " + p.Text)
+	for _, w := range words {
+		if strings.Contains(text, w) {
+			return true
+		}
+	}
+	return false
+}
+
+// aboutCompany checks that a site is the company's, from its home page:
+// every distinctive word of the company's name must be there; a name with
+// one such word ("Entreprise Rousseau") also needs the company's postal
+// code or city, a name with none its postal code; and the page must speak
+// of the company's trade: "Bertrand, artisan floral à Paris" is not the
+// plumber "Artisan Bertrand" of Paris.
+func aboutCompany(p agent.Page, c agent.Company) bool {
+	if !aboutTrade(p, c.Activity) {
+		return false
+	}
+	text := fold(p.Title + " " + p.Text)
+	place := (c.PostalCode != "" && strings.Contains(text, c.PostalCode)) || (c.City != "" && strings.Contains(text, fold(c.City)))
+	for _, name := range []string{c.TradeName, c.Name} {
+		if strings.TrimSpace(name) == "" {
+			continue
+		}
+		var tokens []string
+		for _, t := range nameTokens(name) {
+			if !slices.Contains(tradeWords, t) && t != "artisan" && t != "artisans" {
+				tokens = append(tokens, t)
+			}
+		}
+		all := true
+		for _, t := range tokens {
+			all = all && strings.Contains(text, t)
+		}
+		switch {
+		case len(tokens) >= 2 && all:
+			return true
+		case len(tokens) == 1 && all && place:
+			return true
+		case len(tokens) == 0 && c.PostalCode != "" && strings.Contains(text, c.PostalCode):
+			return true
+		}
+	}
+	return false
+}
+
 // chooseSite picks, among search results, the company's own site: not a
 // directory, and its domain carries a distinctive word of the company's
 // name. No match: no site (better none than someone else's).

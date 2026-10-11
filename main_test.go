@@ -24,7 +24,7 @@ Cordialement,
 func fakeModel(msgs []agent.Message, _ int) (string, error) {
 	sys := msgs[0].Content
 	switch {
-	case strings.Contains(sys, "Tu écris des emails"):
+	case strings.Contains(sys, "emails de prospection"):
 		return goodMessage, nil
 	case strings.Contains(sys, "Tu classes"):
 		if strings.Contains(strings.ToLower(msgs[len(msgs)-1].Content), "oui") {
@@ -56,7 +56,7 @@ func newBox(t *testing.T) *agenttest.Box {
 		return []agent.Company{
 			{SIREN: "111111111", Name: "PLOMBERIE DUBERT", City: "PARIS", Activity: "43.22A"},
 			{SIREN: "222222222", Name: "MARIE MARTIN", City: "PARIS", SoleTrader: true},
-			{SIREN: "333333333", Name: "CHAUFFAGE ROQUETTE", City: "PARIS"},
+			{SIREN: "333333333", Name: "CHAUFFAGE ROQUETTE", City: "PARIS", PostalCode: "75011"},
 			{SIREN: "444444444", Name: "SANS SITE SARL", City: "PARIS"},
 		}
 	}
@@ -71,7 +71,7 @@ func newBox(t *testing.T) *agenttest.Box {
 	}
 	box.Pages = map[string]agent.Page{
 		"https://www.plomberie-dubert.fr/":      {Text: "Plombier à Paris 11e. Contact : contact@plomberie-dubert.fr"},
-		"https://chauffage-roquette.fr/":        {Text: "Chauffagiste", Links: []agent.Link{{Text: "Nous écrire", URL: "https://chauffage-roquette.fr/contact"}}},
+		"https://chauffage-roquette.fr/":        {Text: "Chauffagiste, 12 rue de la Roquette, 75011 Paris", Links: []agent.Link{{Text: "Nous écrire", URL: "https://chauffage-roquette.fr/contact"}}},
 		"https://chauffage-roquette.fr/contact": {Links: []agent.Link{{URL: "mailto:accueil@chauffage-roquette.fr"}, {URL: "mailto:paul.roquette@gmail.com"}}},
 	}
 	return box

@@ -32,14 +32,24 @@ func systemPrompt(cfg Config) string {
 	if cfg.Tone == "tu" {
 		you = "Tutoie le destinataire."
 	}
-	return "Tu écris des emails de prospection entre professionnels, en français, pour cette offre : " + cfg.Offer + "\n" +
-		"Règles : 60 à 110 mots ; " + you + " Utilise {entreprise} pour le nom de l'entreprise et {ville} pour sa ville. " +
-		"Pas de lien, pas de pièce jointe, pas de chiffre ni de promesse que l'offre ne contient pas, pas de signature " +
-		"(elle est ajoutée automatiquement). Termine par une question simple. " +
+	numbers := "N'écris aucun chiffre."
+	if digitsRe.MatchString(cfg.Offer) {
+		numbers = "N'utilise que les chiffres présents dans l'offre."
+	}
+	return "Tu écris, au nom de l'expéditeur, des emails de prospection entre professionnels, en français, pour cette offre de l'expéditeur : " +
+		cfg.Offer + "\n" +
+		"Règles : 60 à 110 mots ; " + you + " {entreprise} est le nom de l'entreprise DESTINATAIRE (celle à qui tu écris, jamais l'expéditeur) " +
+		"et {ville} sa ville ; l'expéditeur parle avec « nous ». " + numbers + " " +
+		"Texte brut : pas d'astérisques, pas de gras, pas de titres, pas de lien, pas de pièce jointe, pas de promesse que l'offre ne contient pas, " +
+		"pas de signature (elle est ajoutée automatiquement). Termine par une question simple. " +
 		"Réponds exactement sous la forme :\nObjet : <objet de 4 à 9 mots>\n\n<corps du message>"
 }
 
 var (
+	digitsRe   = regexp.MustCompile(`\d`)
+	markdownRe = regexp.MustCompile(`\*\*|__|(?m)^#+\s*|(?m)^\s*[*•]\s+`)
+	// The recipient taken for the sender: "Chez {entreprise}, nous…".
+	confusedRe = regexp.MustCompile(`(?i)chez\s+\{entreprise\}|\{entreprise\}\s*,?\s*(nous|notre)\b|(notre|nos)\s+(société|entreprise|cabinet|équipe)\s+\{entreprise\}|\{entreprise\}\s+(vous\s+)?(propose|accompagne|aide)`)
 	subjectRe  = regexp.MustCompile(`(?im)^\s*\**\s*objet\s*:\s*(.+)$`)
 	urlRe      = regexp.MustCompile(`(?i)\b(https?://|www\.)\S+`)
 	bracesRe   = regexp.MustCompile(`\{[^{}]*\}|\[[^\[\]]*\]`)
@@ -48,8 +58,9 @@ var (
 )
 
 // parseTemplate reads the model's answer; ok is false when it cannot be
-// used as it is.
-func parseTemplate(answer string) (Template, bool) {
+// used: it confuses the recipient with the sender, or has numbers the
+// offer does not have (made up).
+func parseTemplate(answer, offer string) (Template, bool) {
 	m := subjectRe.FindStringSubmatchIndex(answer)
 	if m == nil {
 		return Template{}, false
@@ -74,8 +85,23 @@ func parseTemplate(answer string) (Template, bool) {
 		}
 		return ""
 	})
-	// The box signs: the model's sign-off line goes.
+	// The box signs: the model's sign-off line goes. Plain text: no
+	// markdown.
 	body = signoffRe.ReplaceAllString(body, "")
+	body = markdownRe.ReplaceAllStringFunc(body, func(m string) string {
+		if strings.Contains(m, "*") && strings.TrimSpace(m) != "**" || strings.Contains(m, "•") {
+			return "- "
+		}
+		return ""
+	})
+	subject = strings.ReplaceAll(strings.ReplaceAll(subject, "**", ""), "__", "")
+	if confusedRe.MatchString(body) || confusedRe.MatchString(subject) {
+		return Template{}, false
+	}
+	if !digitsRe.MatchString(offer) && (digitsRe.MatchString(body) || digitsRe.MatchString(subject)) {
+		return Template{}, false
+	}
+	body = strings.ReplaceAll(body, " ,", ",")
 	body = strings.TrimSpace(blankLines.ReplaceAllString(body, "\n\n"))
 	words := len(strings.Fields(body))
 	if subject == "" || utf8.RuneCountInString(subject) > 120 || words < 30 || words > 180 {
@@ -87,17 +113,22 @@ func parseTemplate(answer string) (Template, bool) {
 // fallback is a plain message built from the offer, when the model's
 // answers cannot be used.
 func fallback(cfg Config) Template {
-	hello, you, your := "Bonjour,", "vous", "votre"
+	hello, you, to := "Bonjour,", "vous", "vous"
 	if cfg.Tone == "tu" {
-		you, your = "toi", "ton"
+		you, to = "toi", "te"
 	}
 	offer := strings.TrimSpace(cfg.Offer)
+	// "Tenue de…" in the middle of a sentence: "tenue de…" (not "PME…").
+	if r := []rune(offer); len(r) > 1 && unicode.IsUpper(r[0]) && unicode.IsLower(r[1]) {
+		r[0] = unicode.ToLower(r[0])
+		offer = string(r)
+	}
 	if !strings.HasSuffix(offer, ".") {
 		offer += "."
 	}
 	return Template{
 		Subject: "Une proposition pour {entreprise}",
-		Body: hello + "\n\nJe me permets d'écrire à {entreprise}, à {ville}, car notre offre pourrait " + your + " être utile : " +
+		Body: hello + "\n\nJe me permets d'écrire à {entreprise}, à {ville}, car notre offre pourrait " + to + " être utile : " +
 			offer + "\n\nSerait-il possible d'en parler avec " + you + " quelques minutes cette semaine ?\n\nBonne journée,",
 		Angle: "message simple",
 	}
@@ -109,13 +140,13 @@ func write(box *agent.Box, cfg Config, angle string, avoid *Template) Template {
 	if avoid != nil {
 		user += "\nIl doit être différent de celui-ci :\nObjet : " + avoid.Subject + "\n\n" + avoid.Body
 	}
-	for try := 0; try < 2; try++ {
+	for try := 0; try < 3; try++ {
 		answer, err := box.ChatMax(400, agent.System(systemPrompt(cfg)), agent.User(user))
 		if err != nil {
 			box.Logf("model: %v", err)
 			break
 		}
-		if t, ok := parseTemplate(answer); ok {
+		if t, ok := parseTemplate(answer, cfg.Offer); ok {
 			t.Angle = angle
 			return t
 		}

@@ -137,6 +137,10 @@ func contactOf(box *agent.Box, c agent.Company, campaign string, bud *budget) (p
 		}
 		return nil, ""
 	}
+	if !aboutCompany(home, c) {
+		box.Logf("site %s left: it does not look like %s's", u.Hostname(), name)
+		return nil, ""
+	}
 	email := pickContact(emailsOf(home), u.Hostname(), c.SoleTrader, c.Name, c.TradeName)
 	if email == "" {
 		if contact := contactPage(home, u.Hostname()); contact != "" {
@@ -150,5 +154,6 @@ func contactOf(box *agent.Box, c agent.Company, campaign string, bud *budget) (p
 	if email == "" {
 		return nil, ""
 	}
+	box.Logf("contact: %s <%s> (%s)", name, email, u.Hostname())
 	return &Prospect{SIREN: c.SIREN, Name: name, City: c.City, Email: email, Site: site, Target: campaign}, ""
 }
