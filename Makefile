@@ -17,7 +17,7 @@ check: ## Vérifie le manifeste avec les règles de la box
 
 package: check ## Construit le paquet .kagent dans dist/
 	@mkdir -p dist
-	CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build $(BUILDFLAGS) -trimpath -ldflags '-s -w' -o dist/agent .
+	CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build $(BUILDFLAGS) -trimpath -buildvcs=false -ldflags '-s -w' -o dist/agent .
 	go tool kagent -manifest manifest.toml -executable dist/agent -o $(PACKAGE)
 
 verify: package ## Reconstruit tout et vérifie que le paquet est identique (reproductible)
